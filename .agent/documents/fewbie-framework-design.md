@@ -91,19 +91,26 @@ fewbie 与 @devbie/newbie **根本分野**，不照抄后端的重 npm 包模式
 
 ### Class B — CLI 工具（开发期运行，不进 bundle）
 
-| 命令                     | 调用对象                                                                                                        | 产物                                  |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| `fewbie init`            | 模板仓库 + design token                                                                                         | Next.js + Tailwind + shadcn 骨架      |
-| `fewbie add <component>` | 组件模板库                                                                                                      | `components/fewbie/*.tsx`             |
-| `fewbie gen api`         | `apits-gen`（原名 open-api-typescript-request-generator，2026-09-24 定名；作为 devDependency 引入，**不重写**） | `src/api/_gen/*.ts`（生成物归项目）   |
-| `fewbie doctor`          | 项目扫描                                                                                                        | v0 可读性检测、token 一致性、依赖检查 |
-| `fewbie update`          | git diff                                                                                                        | 组件 / token 升级 diff PR             |
+| 命令                     | 调用对象                                                                                                                                                       | 产物                                  |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `fewbie init`            | 模板仓库 + design token                                                                                                                                        | Next.js + Tailwind + shadcn 骨架      |
+| `fewbie add <component>` | 组件模板库                                                                                                                                                     | `components/fewbie/*.tsx`             |
+| `fewbie gen api`         | `open-api-typescript-request-generator@^0.0.7-alpha.0`（bin `apits`；npm 上 `apits-gen` 包名不存在，2026-09-26 核实；作为 devDependency 按需引入，**不重写**） | `src/api/_gen/api.ts`（生成物归项目） |
+| `fewbie doctor`          | 项目扫描                                                                                                                                                       | v0 可读性检测、token 一致性、依赖检查 |
+| `fewbie update`          | git diff                                                                                                                                                       | 组件 / token 升级 diff PR             |
 
-关键决策：**`apits-gen` 保持独立 npm 包**，fewbie CLI 仅作 thin wrapper（`fewbie gen api`）。理由：
+关键决策：**生成器保持独立 npm 包**，fewbie CLI 仅作 thin wrapper（`fewbie gen api`）。理由：
 
-- 它已是独立项目（包名 `apits-gen`，unscoped，不属 `@devbie` scope；bin 命令 `apits`、配置文件 `apits.config.ts`），重写是浪费。注意：本地仓库目录 `/Users/worldzhy/src/open-api-typescript-request-generator` 当前不存在（2026-09-24 核实，`~/src/apits-generator.code-workspace` 对该目录的引用悬空），仓库重新就位及目录改名（拟改为 `apits-gen`）待执行。
+- 它是独立项目（npm 包名 `open-api-typescript-request-generator`，unscoped，不属 `@devbie` scope；2026-09-26 核实实际消费版本为 `0.0.7-alpha.0`，bin 命令 `apits`、配置文件 `apits.config.ts`，字段 `input`/`output`/`name`/`baseURL`/`clientImportTemplate`；设计早期拟用名 `apits-gen` 在 npm 不存在）。重写是浪费。
 - 生成器是开发期工具不是运行时，工具就该是 CLI。
-- 生成物归项目（`src/api/_gen/`），符合 shadcn 哲学——用户拥有源码。
+- 生成物归项目（`src/api/_gen/api.ts`，函数按 `method+path` 派生命名），符合 shadcn 哲学——用户拥有源码。
+
+`fewbie gen api [input]` 的 wrapper 职责（M3 实现）：
+
+1. 前置要求 `fewbie add api-client`；首次运行用位置参数 input 脚手架 `apits.config.ts`（output `src/api/_gen`、name `api`、`baseURL: '[code]:process.env.NEXT_PUBLIC_BASE_URL'`、clientImportTemplate 指向 `../request`），此后 config 为唯一真源，再传位置参数会报错（上游在 CLI input 模式下会绕过 config 及其 clientImportTemplate）。
+2. 一次性写入项目拥有的适配器 `src/api/request.ts`（把生成物的双泛型 `request.get<Req,Res>(url,{params|data})` 调用形态桥接到单泛型、body 解包的 apiClient；POST/PUT/PATCH 的 config.data 拆为位置参数），已存在则永不覆盖。
+3. 按需把生成器装入项目 devDependencies（`--skip-install` 可跳过），透传 `-n` 与 `-w/--watch`。
+4. 上游生成失败也返回 exit 0，wrapper 通过产物文件 mtime 自检并以非零退出。
 
 ### Class C — UI 组件（shadcn 式复制源码）
 
@@ -126,7 +133,7 @@ fewbie 与 @devbie/newbie **根本分野**，不照抄后端的重 npm 包模式
 | refreshToken / token 拦截 | shadcn 式复制                          | `fewbie add api-client` | diff PR      |
 | auth util / route guard   | shadcn 式复制                          | `fewbie add auth`       | diff PR      |
 | design token              | shadcn 式复制                          | `fewbie add theme`      | diff PR      |
-| apits-gen                 | CLI 工具（独立 npm 包 + thin wrapper） | `fewbie gen api`        | `npm update` |
+| API 代码生成              | CLI 工具（独立 npm 包 + thin wrapper） | `fewbie gen api`        | `npm update` |
 | API 生成物 `_gen/`        | 项目源码                               | （由 gen api 生成）     | 重新生成     |
 
 ## 六、fewbie 体系全景
