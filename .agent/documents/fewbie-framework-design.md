@@ -76,11 +76,11 @@ fewbie 与 @devbie/newbie **根本分野**，不照抄后端的重 npm 包模式
 
 `fewbie add <name>` 把 util 源码写入项目，与 UI 组件同一种模式。
 
-| 命令                    | 写入位置                                                 | 内容                                                                                                                                                                      |
-| ----------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fewbie add api-client` | `src/api/client.ts`                                      | axios 实例 + access token 存储 + refresh token 轮换 + 401 拦截重试 + 跨 tab 同步（即当前 `src/api/fetch.ts` 约 200 行逻辑的骨架）                                         |
-| `fewbie add auth`       | `src/lib/auth.ts`                                        | login/logout util + route guard + 主动刷新调度器（proactive refresh）                                                                                                     |
-| `fewbie add theme`      | `src/components/theme-provider.tsx` + `theme-toggle.tsx` | next-themes 暗色切换 provider/按钮（2026-09-26 调整：CSS 变量 token 已由模板 `shadcn init` 内置，Tailwind v4 无独立 `tailwind.config.ts`，故 theme 件收敛为暗色模式能力） |
+| 命令                    | 写入位置                                                 | 内容                                                                                                                                                                                                                                               |
+| ----------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fewbie add api-client` | `src/lib/api-client.ts`                                  | axios 实例 + access token 存储 + refresh token 轮换 + 401 拦截重试 + 跨 tab 同步（即当前 `src/api/fetch.ts` 约 200 行逻辑的骨架；2026-09-26 路径由 `src/api/client.ts` 收敛到 `src/lib/`，以同时满足官方 shadcn CLI 对 `registry:lib` 的落点规则） |
+| `fewbie add auth`       | `src/lib/auth.ts`                                        | login/logout util + route guard + 主动刷新调度器（proactive refresh）                                                                                                                                                                              |
+| `fewbie add theme`      | `src/components/theme-provider.tsx` + `theme-toggle.tsx` | next-themes 暗色切换 provider/按钮（2026-09-26 调整：CSS 变量 token 已由模板 `shadcn init` 内置，Tailwind v4 无独立 `tailwind.config.ts`，故 theme 件收敛为暗色模式能力）                                                                          |
 
 采用复制而非 npm 包的理由：
 
