@@ -1,0 +1,32 @@
+# compiled output
+/dist
+/node_modules
+*.tsbuildinfo
+
+# dotenv environment variables file
+.env
+.env*.local
+
+# OS
+.DS_Store
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IDE - WebStorm
+.idea
+
+# monorepo workspaces
+packages/*/dist
+packages/*/node_modules
+templates/*/node_modules
+templates/*/dist
+
+# Next.js (templates/basic)
+templates/*/.next
+templates/*/out
+templates/*/next-env.d.ts
