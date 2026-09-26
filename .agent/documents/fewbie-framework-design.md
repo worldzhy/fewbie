@@ -158,12 +158,12 @@ registry 双端消费：fewbie add（自研路径）／ npx shadcn add <registry
 运行时：无 @devbie/fewbie-core npm 包——所有运行时代码以源码形式归项目所有
 ```
 
-web-monitor SDK（自动 PV/错误上报）采用混合分发（2026-09-24 决议）：npm 包 `@devbie/web-monitor-sdk`（独立版本）+ `fewbie add web-monitor-sdk` thin wrapper（脚手架初始化样板 + 在 package.json 加入 `@devbie/web-monitor-sdk` 依赖）。旧名 `@inceptionpad/frontend-monitor-web-sdk`、`@doctorwork/web-report-sdk` 已弃用/被取代。SDK 的 endpoint / 凭证 / 数据格式依赖 UI 层次重构 Phase 1 的 Application/Agent 模型落地后才能定稿。
+web-monitor SDK（自动 PV/错误上报）采用混合分发（2026-09-24 决议）：npm 包 `@devbie/web-monitor-sdk`（独立版本）+ `fewbie add web-monitor-sdk` thin wrapper（脚手架初始化样板 + 在 package.json 加入 `@devbie/web-monitor-sdk` 依赖）。旧名 `@inceptionpad/frontend-monitor-web-sdk`、`@doctorwork/web-report-sdk` 已弃用/被取代。SDK 的 endpoint / 凭证 / 数据格式依赖 UI 层次重构 Phase 1 的 Application/Agent 模型落地后才能定稿。**该包只做浏览器端数据上报，不含心跳**（2026-09-26 订正）。
 
-**应用心跳义务（2026-09-25 新增）**：`@devbie/web-monitor-sdk` 是 newbie web-monitor 服务的配套 SDK，分**服务端组件**（在线判定信号源）与**浏览器组件**（只上报数据，不发心跳）——契约真源见 nightwatch `application-creation-flow-design.md` 7.3/9.11。fewbie 侧义务：
+**应用心跳义务（2026-09-25 新增，2026-09-26 订正包归属）**：浏览器监控包 `@devbie/web-monitor-sdk` 与心跳包 `@devbie/nightwatch-heartbeat-sdk` 是**两个不同的、独立安装的包**——前者只在浏览器上报 PV/AJAX/错误，后者在 Node 进程发心跳、是 online 判定的唯一信号源；契约真源见 nightwatch `application-creation-flow-design.md` 7.3/9.11。fewbie 侧义务：
 
-1. **fewbie 模板**：内置 `instrumentation.ts`，`register()` 中 `NEXT_RUNTIME === 'nodejs'` 时调用 `@devbie/nightwatch-heartbeat-sdk` 启动心跳（SDK 内部 `setInterval(30s).unref()` + global symbol 幂等防 dev HMR 重复启动）——模板创建的应用部署即在线可见，零配置。
-2. **`fewbie add web-monitor-sdk` thin wrapper**：为非模板项目脚手架同样的 `instrumentation.ts` 接线（项目已有该文件时提示合并，不覆盖）。
+1. **fewbie 模板**：内置 `instrumentation.ts`，`register()` 中 `NEXT_RUNTIME === "nodejs"` 时调用 `@devbie/nightwatch-heartbeat-sdk` 启动心跳（SDK 内部 `setInterval(30s).unref()` + global symbol 幂等防 dev HMR 重复启动）——模板创建的应用部署即在线可见，零配置。
+2. **`fewbie add web-monitor-sdk` thin wrapper**：只脚手架**浏览器**监控初始化（layout 注入采集组件 + 加 `@devbie/web-monitor-sdk` 依赖）；它不负责心跳接线。非模板项目的 Node 心跳接线（`instrumentation.ts` + `@devbie/nightwatch-heartbeat-sdk` 依赖）由 nightwatch 安装向导给出片段，项目已有该文件时提示合并，不覆盖。
 3. **边界**：心跳证明进程存活与事件循环可响应，不代表外部可达性；Serverless/Edge 部署无常驻进程，不支持（目标部署为常驻 Node 容器）。
 
 ## 七、待定项与影响
