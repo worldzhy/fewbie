@@ -26,12 +26,12 @@ Standard ui primitives come straight from shadcn/ui; fewbie-specific business
 components and logic utils are installed with `fewbie add <name>` from the
 fewbie registry.
 
-## Nightwatch heartbeat (optional)
+## Heartbeat (optional)
 
-`src/instrumentation.ts` reports liveness to the nightwatch platform when
+`src/instrumentation.ts` reports liveness to the heartbeat server when
 both env vars are set (see `.env.example`):
 
-- `NIGHTWATCH_REPORT_ENDPOINT` — nightwatch base URL
-- `NIGHTWATCH_APPLICATION_TOKEN` — agent token (sent as `X-Application-Token`)
+- `HEARTBEAT_ENDPOINT` — heartbeat server base URL
+- `HEARTBEAT_TOKEN` — installation token (sent as `X-Heartbeat-Token`)
 
 Without them the hook is a no-op.
