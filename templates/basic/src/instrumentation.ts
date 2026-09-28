@@ -5,7 +5,7 @@ export async function register(): Promise<void> {
   // The heartbeat SDK uses Node APIs; skip the edge runtime.
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
 
-  const { startHeartbeat } = await import("@devbie/nightwatch-heartbeat-sdk");
+  const { startHeartbeat } = await import("@devbie/heartbeat-sdk");
   const endpoint = process.env.NIGHTWATCH_REPORT_ENDPOINT;
   const token = process.env.NIGHTWATCH_APPLICATION_TOKEN;
   if (endpoint && token) {
