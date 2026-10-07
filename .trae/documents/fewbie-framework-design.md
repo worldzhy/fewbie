@@ -112,6 +112,24 @@ fewbie 与 @devbie/newbie **根本分野**，不照抄后端的重 npm 包模式
 3. 按需把生成器装入项目 devDependencies（`--skip-install` 可跳过），透传 `-n` 与 `-w/--watch`。
 4. 上游生成失败也返回 exit 0，wrapper 通过产物文件 mtime 自检并以非零退出。
 
+#### apits + react-query 消费范式（2026-10-08 沉淀，配套 `fewbie add query-client`）
+
+生成物只负责传输层；服务端状态一律经 `@tanstack/react-query` 消费。范式要点（均以 apits 的 `ApiResponse<T> = [data?, res?]` 返回形态为前提）：
+
+1. **解构空值守卫**：`noUncheckedIndexedAccess` 下对元组解构出的 `data` 带 `| undefined`，消费侧必须守卫：
+   ```ts
+   const { data } = useQuery({
+     queryKey: ["projects"],
+     queryFn: async () => {
+       const [data] = await getProjects();
+       return data ?? [];
+     },
+   });
+   ```
+2. **queryKey 层级**：资源名 camelCase 起首、参数依次追加（`["projects"]`、`["accountSettingsSessions", userId]`），失效按前缀匹配。
+3. **mutation 失效约定**：在 mutation 的 `onSuccess` 中 `queryClient.invalidateQueries({ queryKey: [<资源前缀>] })`，不手工改写缓存。
+4. **QueryClient 接线**：server 每请求新建、browser 单例（`getQueryClient`）；禁止在 client component 体内 `new QueryClient()`（重渲染即丢缓存）。
+
 ### Class C — UI 组件（shadcn 式复制源码）
 
 | 命令                                 | 内容                                               |
