@@ -190,6 +190,10 @@ web-monitor SDK（自动 PV/错误上报）采用混合分发（2026-09-24 决�
 2. **fewbie 仓库结构（2026-09-25 定稿）**——fewbie monorepo（npm workspaces，与 newbie 仓同构）：根 `package.json`（private，workspaces `packages/*` + `templates/*`）+ `packages/fewbie-cli`（`@devbie/fewbie-cli`，bin `fewbie`，TS + commander；`registry/` 随包 `files` 分发，单一真源）+ `templates/basic`（已 shadcn init 的完整 Next.js 骨架）。模板 tag 用独立命名空间并与 CLI 版本线对齐；`init` 复用 newbie create 的模板解析链（`--template-path → monorepo → git clone --branch <tag>`）。实施里程碑：M0 monorepo 骨架（tsc 通过）→ M1 templates/basic + `init` 冒烟（容器内 next build）→ M2 registry + 4 个 add → M3 `gen api` → M4 发 `0.1.0-stage.0` + 打模板 tag。
 3. **实施时机与 v1 范围（2026-09-25 定稿）**——fewbie 不阻塞后端 @devbie/newbie 抽取；v1 首批能力 = `init` + `add`（api-client / auth / theme / login-form 共 4 件）+ `gen api`；`doctor` / `update` / 其余 add（data-table、page-header、settings-required-state、web-monitor-sdk wrapper）不进 v1。以新项目作为首个真实落地验证。
 4. ~~`newbie-core-packaging-plan.md` Phase 5 需按本决议重写~~——已完成（2026-09-24）：后端文档已重命名为 `newbie-framework-split-plan.md`，第六章与 Phase 5/6 均已按本决议同步。
+5. **nightwatch-frontend 资产沉淀候选登记（2026-10-08）**——首轮沉淀已落地 `app-shell`、`query-client` 两件（详见 `.trae/documents/nightwatch-frontend-asset-sedimentation-plan.md`）。候选登记：
+   - **companion block（方向成立、时机未到）**：copilot-dock 全家桶（配对 copilot kernel，触发条件：copilot monitoring phase 2 交付、blocks 协议冻结）；notification-bell 一套（配对 notification-center capability）。首对 companion 落地时需先立「newbie 后端模块 ↔ fewbie 前端 companion item」配对与跟版约定（单独立项）。
+   - **A 档小项（未做，可随需要补）**：password-checklist（规则真源在 newbie account password.validator，item 描述必须标注手工同步义务）、sse-stream（只抽 POST+SSE 传输内核，事件解析留给调用方）。
+   - **禁止反向污染**：沉淀评审时凡依赖 nw 技术债栈（react-toastify、手写 theme store、React 18）的代码一律不得直接复制，先改写再迁。
 
 ## 八、决策记录
 
