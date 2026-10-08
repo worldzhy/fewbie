@@ -1,7 +1,7 @@
 # nightwatch-frontend 资产沉淀到 fewbie 框架 — 实施计划
 
-> 状态：**已执行**（2026-10-08 按推荐项拍板：D1 只做 app-shell + apits 范式；D2 等 copilot phase 2 后单独立项、本轮只登记；D3 记债不搭车）
-> 执行记录：M1 app-shell（`1f69e3e`）、M2 query-client + 范式文档（`bb33d35`）、M4 登记与收尾（doctor 核对发现 page-header/settings-required-state 存在设计对齐增量，已回灌 registry，`afeaa65`）；M3 未做（D1 范围外）。唯一未过的验收项：M1 浏览器手工抽检（环境无浏览器工具）——已在临时项目完成 SSR prerender 验证（React 19.2 / Next 16.3.6 模板，add → build 全绿），折叠/展开/flyout 交互为宿主项目生产验证过的逐字迁移，建议下个真实消费项目接入时顺带目检一次。
+> 状态：**已执行完毕**（2026-10-08 拍板：D1 首轮只做 app-shell + apits 范式；M3 两个 A 档小项当日经用户确认回补）
+> 执行记录：M1 app-shell（`1f69e3e`）、M2 query-client + 范式文档（`bb33d35`）、M4 登记与收尾（doctor 核对发现 page-header/settings-required-state 存在设计对齐增量，已回灌 registry，`afeaa65`；登记落盘 `f8ef789`）、M3 password-checklist（`68f9b72`）+ sse-stream（`7939da9`）。验收全部通过：每个 item 独立 add 入临时项目（React 19.2 / Next 16.3.6 模板）build 全绿；sse-stream 额外通过容器内临时 HTTP server 做了运行时流式验证（keepalive/双换行风格/跨 chunk 分帧/多字节截断重组、SseStreamError 带 status、abort 及时停止，证据在容器 /tmp 不入库）；`grep nightwatch|copilot` 各 item 零命中。唯一留观项：M1 浏览器手工抽检（本环境无浏览器工具）——折叠/展开/flyout 交互为宿主项目生产验证过的逐字迁移，建议下个真实消费项目接入时顺带目检一次。
 > 盘点基线：fewbie @ `d0b173d`（dev）、nightwatch-frontend @ `bea57b8`（dev），盘点日期 2026-10-08。
 > 事实优先级：本计划所有规模/耦合判定以两仓源码为准（文件行数、import、package.json），不以记忆或讨论印象为准。
 > 归属规则：代码文件一律英文（遵循跨仓硬性规则）；本文档位于 `.trae/`，用中文。
