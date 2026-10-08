@@ -195,6 +195,13 @@ web-monitor SDK（自动 PV/错误上报）采用混合分发（2026-09-24 决�
    - **A 档小项（已沉淀，2026-10-08）**：password-checklist（registry:item，描述标注规则真源在 newbie account password.validator、后端策略变更需手工同步）、sse-stream（只含 POST+SSE 传输内核，事件解析留给调用方）。
    - **禁止反向污染**：沉淀评审时凡依赖 nw 技术债栈（react-toastify、手写 theme store、React 18）的代码一律不得直接复制，先改写再迁。
 
+6. **init 装配选择 + 框架接线机制（2026-10-08 登记，搁置待重启）**——需求方向已确认（用户原话）："建新项目时可以由使用者选择装配哪些，然后由框架实现接线"。现状缺口（已取证）：`fewbie init` 不与 registry 交互；`add` 只复制文件 + 打印 postInstall 手工提示（`theme`、`query-client` 均需手工改 root layout），即沉淀计划收录规则第 3 条"无代码改写能力"（Non-Goal #6）。本轮已出决策表，三个分叉点全部搁置；机制未拍板前该收录规则维持有效。重启时从拍板开始、无需重新取证：
+   - **D1 接线机制**：A 声明式 wiring 清单——item.json 加 `wiring` 字段，CLI 内置 `insert-import` / `wrap-children` 通用变换器，编辑落点带 sentinel marker（幂等、可追溯），shadcn 端退化为装文件不接线（built item 已有 `postInstall` fewbie 专有字段先例，见 `src/registry/types.ts` 注释）/ B per-item codemod 脚本——registry 变任意代码执行，审计面失控 / C 仅 init 时接线——add 与 init 行为分裂。当时推荐 A。
+   - **D2 init 选择交互**：A flags + TTY 交互兜底（create-next-app 先例；`--add app-shell,query-client` 脚本化，无参数 TTY 勾选；新增 `@clack/prompts` 运行时依赖）/ B 仅 flags / C 仅交互。当时推荐 A。
+   - **D3 接线状态校验**：是否纳入 doctor（校验 marker 完整性）。接线改的是宿主文件、不在 `fewbie update` 覆盖范围，doctor 是唯一可验证闭环。当时推荐纳入。
+   - 方案骨架（D1-A 形态）：`wiring: [{ target: "src/app/layout.tsx", action: "wrap-children", import: { module: "@/components/query-provider", symbol: "QueryProvider" }, element: "QueryProvider" }]`；init 流序 copy template → rename → runAdd(selected)（wiring 开启、npm install 内含）→ git init 收尾（首个提交即完整可用态）；失败语义沿用 add「不半写」：wiring pre-check（pattern 找不到 / 已接线）失败即整体拒绝。v1 变换器集合两个动作即够，消费者为 `theme`、`query-client`；app-shell 的 nav 配置属内容填空，维持提示不走 wiring。
+   - 拍板后的联动义务：推翻沉淀计划（`nightwatch-frontend-asset-sedimentation-plan.md`）收录规则第 3 条与 Non-Goal #6，并同步修订本文件决策 12"自研安装路径（读 registry 源文件复制）"的表述；文档订正随实现同一提交。待验证项（推测）：shadcn CLI 对未知字段的容忍度——`postInstall` 先例表明可行，实现时以官方 CLI 实装 built item 验证。
+
 ## 八、决策记录
 
 | #   | 决策                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | 日期       |
