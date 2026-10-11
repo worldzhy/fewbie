@@ -6,3 +6,4 @@ Agents: add a row here right after making a local commit you are not pushing you
 
 | Date | Commit(s) | Summary | Notes |
 |------|-----------|---------|-------|
+| 2026-10-12 | 6f7291b | Add PR template, ADR template, release checklist, this file | |
