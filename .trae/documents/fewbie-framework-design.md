@@ -1,7 +1,7 @@
 # fewbie 前端框架设计决议
 
 > 状态：设计决议（2026-09-24）
-> 本文档取代 `/Users/worldzhy/src/newbie/.agent/documents/newbie-framework-split-plan.md` 中第六章「@devbie/fewbie-core 设计」的旧方案（旧方案拟照抄 @devbie/newbie 的重 npm 包模式，已废弃；该后端文档已于 2026-09-24 同步修订）。
+> 本文档取代 `/Users/worldzhy/src/newbie/.trae/documents/newbie-framework-split-plan.md` 中第六章「@devbie/fewbie-core 设计」的旧方案（旧方案拟照抄 @devbie/newbie 的重 npm 包模式，已废弃；该后端文档已于 2026-09-24 同步修订）。
 
 ## 一、背景与触发条件
 
@@ -91,26 +91,44 @@ fewbie 与 @devbie/newbie **根本分野**，不照抄后端的重 npm 包模式
 
 ### Class B — CLI 工具（开发期运行，不进 bundle）
 
-| 命令                     | 调用对象                                                                                                                                                       | 产物                                  |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| `fewbie init`            | 模板仓库 + design token                                                                                                                                        | Next.js + Tailwind + shadcn 骨架      |
-| `fewbie add <component>` | 组件模板库                                                                                                                                                     | `components/fewbie/*.tsx`             |
-| `fewbie gen api`         | `open-api-typescript-request-generator@^0.0.7-alpha.0`（bin `apits`；npm 上 `apits-gen` 包名不存在，2026-09-26 核实；作为 devDependency 按需引入，**不重写**） | `src/api/_gen/api.ts`（生成物归项目） |
-| `fewbie doctor`          | 项目扫描                                                                                                                                                       | v0 可读性检测、token 一致性、依赖检查 |
-| `fewbie update`          | git diff                                                                                                                                                       | 组件 / token 升级 diff PR             |
+| 命令                     | 调用对象                                                                                                                                                    | 产物                                  |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `fewbie init`            | 模板仓库 + design token                                                                                                                                     | Next.js + Tailwind + shadcn 骨架      |
+| `fewbie add <component>` | 组件模板库                                                                                                                                                  | `components/fewbie/*.tsx`             |
+| `fewbie apits`           | `apits-gen@^1.0.0`（bin `apits`；2026-10-05 落实决议 #4 切换正式包名，bin/配置 schema 零改动，旧 unscoped 包废弃；作为 devDependency 按需引入，**不重写**） | `src/api/_gen/api.ts`（生成物归项目） |
+| `fewbie doctor`          | 项目扫描                                                                                                                                                    | v0 可读性检测、token 一致性、依赖检查 |
+| `fewbie update`          | git diff                                                                                                                                                    | 组件 / token 升级 diff PR             |
 
-关键决策：**生成器保持独立 npm 包**，fewbie CLI 仅作 thin wrapper（`fewbie gen api`）。理由：
+关键决策：**生成器保持独立 npm 包**，fewbie CLI 仅作 thin wrapper（`fewbie apits`）。理由：
 
-- 它是独立项目（npm 包名 `open-api-typescript-request-generator`，unscoped，不属 `@devbie` scope；2026-09-26 核实实际消费版本为 `0.0.7-alpha.0`，bin 命令 `apits`、配置文件 `apits.config.ts`，字段 `input`/`output`/`name`/`baseURL`/`clientImportTemplate`；设计早期拟用名 `apits-gen` 在 npm 不存在）。重写是浪费。
+- 它是独立项目（npm 包名 `apits-gen`，不属 `@devbie` scope；2026-10-05 核实 1.0.0 已发布，bin 命令 `apits`、配置文件 `apits.config.ts`，字段 `input`/`output`/`name`/`baseURL`/`clientImportTemplate` 全部兼容）。消费沿革：2026-09-26 起暂用旧 unscoped 包 `open-api-typescript-request-generator@0.0.7-alpha.0`（当时拟用名 `apits-gen` 在 npm 尚不存在），1.0.0 发布后按决议 #4 切换。重写是浪费。
 - 生成器是开发期工具不是运行时，工具就该是 CLI。
 - 生成物归项目（`src/api/_gen/api.ts`，函数按 `method+path` 派生命名），符合 shadcn 哲学——用户拥有源码。
 
-`fewbie gen api [input]` 的 wrapper 职责（M3 实现）：
+`fewbie apits [input]` 的 wrapper 职责（M3 实现；命令原名 `gen api`，2026-10-05 更名）：
 
 1. 前置要求 `fewbie add api-client`；首次运行用位置参数 input 脚手架 `apits.config.ts`（output `src/api/_gen`、name `api`、`baseURL: '[code]:process.env.NEXT_PUBLIC_BASE_URL'`、clientImportTemplate 指向 `../request`），此后 config 为唯一真源，再传位置参数会报错（上游在 CLI input 模式下会绕过 config 及其 clientImportTemplate）。
 2. 一次性写入项目拥有的适配器 `src/api/request.ts`（把生成物的双泛型 `request.get<Req,Res>(url,{params|data})` 调用形态桥接到单泛型、body 解包的 apiClient；POST/PUT/PATCH 的 config.data 拆为位置参数），已存在则永不覆盖。
 3. 按需把生成器装入项目 devDependencies（`--skip-install` 可跳过），透传 `-n` 与 `-w/--watch`。
 4. 上游生成失败也返回 exit 0，wrapper 通过产物文件 mtime 自检并以非零退出。
+
+#### apits + react-query 消费范式（2026-10-08 沉淀，配套 `fewbie add query-client`）
+
+生成物只负责传输层；服务端状态一律经 `@tanstack/react-query` 消费。范式要点（均以 apits 的 `ApiResponse<T> = [data?, res?]` 返回形态为前提）：
+
+1. **解构空值守卫**：`noUncheckedIndexedAccess` 下对元组解构出的 `data` 带 `| undefined`，消费侧必须守卫：
+   ```ts
+   const { data } = useQuery({
+     queryKey: ["projects"],
+     queryFn: async () => {
+       const [data] = await getProjects();
+       return data ?? [];
+     },
+   });
+   ```
+2. **queryKey 层级**：资源名 camelCase 起首、参数依次追加（`["projects"]`、`["accountSettingsSessions", userId]`），失效按前缀匹配。
+3. **mutation 失效约定**：在 mutation 的 `onSuccess` 中 `queryClient.invalidateQueries({ queryKey: [<资源前缀>] })`，不手工改写缓存。
+4. **QueryClient 接线**：server 每请求新建、browser 单例（`getQueryClient`）；禁止在 client component 体内 `new QueryClient()`（重渲染即丢缓存）。
 
 ### Class C — UI 组件（shadcn 式复制源码）
 
@@ -133,8 +151,8 @@ fewbie 与 @devbie/newbie **根本分野**，不照抄后端的重 npm 包模式
 | refreshToken / token 拦截 | shadcn 式复制                          | `fewbie add api-client` | diff PR      |
 | auth util / route guard   | shadcn 式复制                          | `fewbie add auth`       | diff PR      |
 | design token              | shadcn 式复制                          | `fewbie add theme`      | diff PR      |
-| API 代码生成              | CLI 工具（独立 npm 包 + thin wrapper） | `fewbie gen api`        | `npm update` |
-| API 生成物 `_gen/`        | 项目源码                               | （由 gen api 生成）     | 重新生成     |
+| API 代码生成              | CLI 工具（独立 npm 包 + thin wrapper） | `fewbie apits`          | `npm update` |
+| API 生成物 `_gen/`        | 项目源码                               | （由 apits 生成）       | 重新生成     |
 
 ## 六、fewbie 体系全景
 
@@ -144,7 +162,7 @@ fewbie monorepo（~/src/fewbie，npm workspaces）
 │   ├── src/                    命令实现
 │   │   ├── init                clone fewbie 模板仓库（与 newbie create 同解析链，可 pin tag）
 │   │   ├── add <name>          从 registry 复制组件/util 源码到项目
-│   │   ├── gen api             thin wrapper → apits 生成器（OpenAPI → TS 请求代码）
+│   │   ├── apits              thin wrapper → apits-gen 生成器（OpenAPI → TS 请求代码）
 │   │   ├── doctor              v0 可读性 / token 一致性 / 依赖检查（v1 不做）
 │   │   └── update              组件/token 升级 → diff PR（v1 不做）
 │   └── registry/               组件/util 单一真源（shadcn registry 兼容）
@@ -172,6 +190,17 @@ web-monitor SDK（自动 PV/错误上报）采用混合分发（2026-09-24 决�
 2. **fewbie 仓库结构（2026-09-25 定稿）**——fewbie monorepo（npm workspaces，与 newbie 仓同构）：根 `package.json`（private，workspaces `packages/*` + `templates/*`）+ `packages/fewbie-cli`（`@devbie/fewbie-cli`，bin `fewbie`，TS + commander；`registry/` 随包 `files` 分发，单一真源）+ `templates/basic`（已 shadcn init 的完整 Next.js 骨架）。模板 tag 用独立命名空间并与 CLI 版本线对齐；`init` 复用 newbie create 的模板解析链（`--template-path → monorepo → git clone --branch <tag>`）。实施里程碑：M0 monorepo 骨架（tsc 通过）→ M1 templates/basic + `init` 冒烟（容器内 next build）→ M2 registry + 4 个 add → M3 `gen api` → M4 发 `0.1.0-stage.0` + 打模板 tag。
 3. **实施时机与 v1 范围（2026-09-25 定稿）**——fewbie 不阻塞后端 @devbie/newbie 抽取；v1 首批能力 = `init` + `add`（api-client / auth / theme / login-form 共 4 件）+ `gen api`；`doctor` / `update` / 其余 add（data-table、page-header、settings-required-state、web-monitor-sdk wrapper）不进 v1。以新项目作为首个真实落地验证。
 4. ~~`newbie-core-packaging-plan.md` Phase 5 需按本决议重写~~——已完成（2026-09-24）：后端文档已重命名为 `newbie-framework-split-plan.md`，第六章与 Phase 5/6 均已按本决议同步。
+5. **nightwatch-frontend 资产沉淀候选登记（2026-10-08）**——A 档四件已全部沉淀：`app-shell`、`query-client`、`password-checklist`、`sse-stream`（详见 `.trae/documents/nightwatch-frontend-asset-sedimentation-plan.md`）。候选登记：
+   - **companion block（方向成立、时机未到）**：copilot-dock 全家桶（配对 copilot kernel，触发条件：copilot monitoring phase 2 交付、blocks 协议冻结）；notification-bell 一套（配对 notification-center capability）。首对 companion 落地时需先立「newbie 后端模块 ↔ fewbie 前端 companion item」配对与跟版约定（单独立项）。
+   - **A 档小项（已沉淀，2026-10-08）**：password-checklist（registry:item，描述标注规则真源在 newbie account password.validator、后端策略变更需手工同步）、sse-stream（只含 POST+SSE 传输内核，事件解析留给调用方）。
+   - **禁止反向污染**：沉淀评审时凡依赖 nw 技术债栈（react-toastify、手写 theme store、React 18）的代码一律不得直接复制，先改写再迁。
+
+6. **init 装配选择 + 框架接线机制（2026-10-08 登记，搁置待重启）**——需求方向已确认（用户原话）："建新项目时可以由使用者选择装配哪些，然后由框架实现接线"。现状缺口（已取证）：`fewbie init` 不与 registry 交互；`add` 只复制文件 + 打印 postInstall 手工提示（`theme`、`query-client` 均需手工改 root layout），即沉淀计划收录规则第 3 条"无代码改写能力"（Non-Goal #6）。本轮已出决策表，三个分叉点全部搁置；机制未拍板前该收录规则维持有效。重启时从拍板开始、无需重新取证：
+   - **D1 接线机制**：A 声明式 wiring 清单——item.json 加 `wiring` 字段，CLI 内置 `insert-import` / `wrap-children` 通用变换器，编辑落点带 sentinel marker（幂等、可追溯），shadcn 端退化为装文件不接线（built item 已有 `postInstall` fewbie 专有字段先例，见 `src/registry/types.ts` 注释）/ B per-item codemod 脚本——registry 变任意代码执行，审计面失控 / C 仅 init 时接线——add 与 init 行为分裂。当时推荐 A。
+   - **D2 init 选择交互**：A flags + TTY 交互兜底（create-next-app 先例；`--add app-shell,query-client` 脚本化，无参数 TTY 勾选；新增 `@clack/prompts` 运行时依赖）/ B 仅 flags / C 仅交互。当时推荐 A。
+   - **D3 接线状态校验**：是否纳入 doctor（校验 marker 完整性）。接线改的是宿主文件、不在 `fewbie update` 覆盖范围，doctor 是唯一可验证闭环。当时推荐纳入。
+   - 方案骨架（D1-A 形态）：`wiring: [{ target: "src/app/layout.tsx", action: "wrap-children", import: { module: "@/components/query-provider", symbol: "QueryProvider" }, element: "QueryProvider" }]`；init 流序 copy template → rename → runAdd(selected)（wiring 开启、npm install 内含）→ git init 收尾（首个提交即完整可用态）；失败语义沿用 add「不半写」：wiring pre-check（pattern 找不到 / 已接线）失败即整体拒绝。v1 变换器集合两个动作即够，消费者为 `theme`、`query-client`；app-shell 的 nav 配置属内容填空，维持提示不走 wiring。
+   - 拍板后的联动义务：推翻沉淀计划（`nightwatch-frontend-asset-sedimentation-plan.md`）收录规则第 3 条与 Non-Goal #6，并同步修订本文件决策 12"自研安装路径（读 registry 源文件复制）"的表述；文档订正随实现同一提交。待验证项（推测）：shadcn CLI 对未知字段的容忍度——`postInstall` 先例表明可行，实现时以官方 CLI 实装 built item 验证。
 
 ## 八、决策记录
 

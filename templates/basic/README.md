@@ -31,7 +31,7 @@ fewbie registry.
 `src/instrumentation.ts` reports liveness to the heartbeat server when
 both env vars are set (see `.env.example`):
 
-- `HEARTBEAT_ENDPOINT` — heartbeat server base URL
+- `HEARTBEAT_ENDPOINT` — full heartbeat report URL (e.g. `https://host/heartbeat/ping`)
 - `HEARTBEAT_TOKEN` — installation token (sent as `X-Heartbeat-Token`)
 
 Without them the hook is a no-op.

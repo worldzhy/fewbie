@@ -1,16 +1,17 @@
-// File contents scaffolded by `fewbie gen api`. They live as TypeScript
+// File contents scaffolded by `fewbie apits`. They live as TypeScript
 // modules (rather than copied asset files) so they are compiled into dist
 // and need no runtime asset resolution.
 
 /**
- * The generator is intentionally pinned to the alpha line: the 0.0.x stable
- * line uses the legacy `serverUrl`/`outputFilePath` config schema and the
- * `apits-gener` bin, while real-world fewbie projects consume the rewritten
- * schema (`input`/`output`/`clientImportTemplate`) shipped as alpha.
+ * The apits generator is consumed as a project dev dependency (not bundled
+ * with the CLI) so users own the tool version and can rerun it manually.
+ * `apits-gen@1.0.0` is the released line carrying the rewritten config
+ * schema (`input`/`output`/`clientImportTemplate`); the legacy unscoped
+ * `open-api-typescript-request-generator` package is abandoned.
  */
-export const GENERATOR_PACKAGE_NAME = "open-api-typescript-request-generator";
-export const GENERATOR_PACKAGE_SPEC = "open-api-typescript-request-generator@^0.0.7-alpha.0";
-export const GENERATOR_BIN_RELATIVE = "node_modules/open-api-typescript-request-generator/bin/apits";
+export const GENERATOR_PACKAGE_NAME = "apits-gen";
+export const GENERATOR_PACKAGE_SPEC = "apits-gen@^1.0.0";
+export const GENERATOR_BIN_RELATIVE = "node_modules/apits-gen/bin/apits";
 
 export const CONFIG_PROJECT_PATH = "apits.config.ts";
 export const API_CLIENT_PROJECT_PATH = "src/lib/api-client.ts";
@@ -24,13 +25,13 @@ function escapeSingleQuoted(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
-/** apits.config.ts written on the first `fewbie gen api <input>` run. */
+/** apits.config.ts written on the first `fewbie apits <input>` run. */
 export function renderApitsConfig(input: string): string {
   const safeInput = escapeSingleQuoted(input);
   return `import { defineConfig } from '${GENERATOR_PACKAGE_NAME}';
 
-// Scaffolded by \`fewbie gen api\`. The generator owns this file afterwards:
-// add more OpenAPI sources here and select one with \`fewbie gen api -n <name>\`.
+// Scaffolded by \`fewbie apits\`. The generator owns this file afterwards:
+// add more OpenAPI sources here and select one with \`fewbie apits -n <name>\`.
 export default defineConfig([
   {
     // OpenAPI document source: an http(s) URL or a local JSON/YAML file.
@@ -58,7 +59,7 @@ export default defineConfig([
 export const ADAPTER_CONTENT = `/**
  * Adapter between generated API code and the fewbie api client.
  *
- * Scaffolded by \`fewbie gen api\` and never overwritten afterwards — edit it
+ * Scaffolded by \`fewbie apits\` and never overwritten afterwards — edit it
  * freely (for example to unwrap a { code, data } response envelope).
  */
 import type { AxiosRequestConfig } from "axios";

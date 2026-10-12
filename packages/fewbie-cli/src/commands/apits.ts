@@ -17,9 +17,9 @@ import {
   GENERATOR_PACKAGE_SPEC,
   PUBLIC_BASE_URL_ENV,
   renderApitsConfig,
-} from "./gen-api-templates";
+} from "./apits-templates";
 
-export interface GenApiOptions {
+export interface ApitsOptions {
   /** OpenAPI URL or local file; only used to scaffold the first config. */
   input?: string;
   /** Config source name filter, forwarded as `apits gen -n <name>`. */
@@ -64,16 +64,16 @@ function runGenerator(projectRoot: string, args: string[]): Promise<void> {
   });
 }
 
-export async function runGenApi(options: GenApiOptions): Promise<void> {
+export async function runApits(options: ApitsOptions): Promise<void> {
   const projectRoot = path.resolve(options.cwd ?? process.cwd());
 
   if (!(await exists(path.join(projectRoot, "package.json")))) {
-    throw new CliError(`No package.json found in ${projectRoot}. Run 'fewbie gen api' inside a fewbie project.`);
+    throw new CliError(`No package.json found in ${projectRoot}. Run 'fewbie apits' inside a fewbie project.`);
   }
 
   // The generated adapter imports the fewbie api client.
   if (!(await exists(path.join(projectRoot, API_CLIENT_PROJECT_PATH)))) {
-    throw new CliError(`'fewbie gen api' requires the api-client item. Run 'fewbie add api-client' first.`);
+    throw new CliError(`'fewbie apits' requires the api-client item. Run 'fewbie add api-client' first.`);
   }
 
   // First run: scaffold apits.config.ts from the positional input. The
@@ -86,7 +86,7 @@ export async function runGenApi(options: GenApiOptions): Promise<void> {
     if (!options.input) {
       throw new CliError(
         `No OpenAPI input and no ${CONFIG_PROJECT_PATH} found.\n` +
-          `  First run: fewbie gen api <openapi-url-or-json-file>\n` +
+          `  First run: fewbie apits <openapi-url-or-json-file>\n` +
           `  Afterwards: edit ${CONFIG_PROJECT_PATH} to manage sources.`,
       );
     }
@@ -130,22 +130,44 @@ export async function runGenApi(options: GenApiOptions): Promise<void> {
   if (options.watch) genArgs.push("--watch");
 
   // The upstream generator exits 0 even when generation fails, so verify
-  // success via the expected output file's mtime (skipped in watch mode,
-  // where the generator keeps running).
-  const expectedOutput = path.join(projectRoot, DEFAULT_OUTPUT_DIR, `${options.name ?? DEFAULT_GENERATED_NAME}.ts`);
-  const beforeStat = await fs.stat(expectedOutput).catch(() => null);
+  // success via refreshed mtimes (skipped in watch mode, where the generator
+  // keeps running). With -n only the named output counts; otherwise any
+  // refreshed .ts file in the default output dir counts, so additional
+  // sources scaffolded into that dir cannot fail silently.
+  const outputDir = path.join(projectRoot, DEFAULT_OUTPUT_DIR);
+  const namedOutput = path.join(outputDir, `${options.name ?? DEFAULT_GENERATED_NAME}.ts`);
+  const beforeStat = await fs.stat(namedOutput).catch(() => null);
+  const beforeDirMtimes = new Map<string, number>();
+  if (!options.name) {
+    const entries = await fs.readdir(outputDir).catch(() => [] as string[]);
+    for (const entry of entries.filter((name) => name.endsWith(".ts"))) {
+      const stat = await fs.stat(path.join(outputDir, entry)).catch(() => null);
+      if (stat) beforeDirMtimes.set(entry, stat.mtimeMs);
+    }
+  }
 
   console.info(cyan(`\nGenerating API code (${DEFAULT_OUTPUT_DIR})...`));
   await runGenerator(projectRoot, genArgs);
 
   if (!options.watch) {
-    const afterStat = await fs.stat(expectedOutput).catch(() => null);
-    const refreshed = afterStat !== null && (beforeStat === null || afterStat.mtimeMs > beforeStat.mtimeMs);
+    let refreshed: boolean;
+    if (options.name) {
+      const afterStat = await fs.stat(namedOutput).catch(() => null);
+      refreshed = afterStat !== null && (beforeStat === null || afterStat.mtimeMs > beforeStat.mtimeMs);
+    } else {
+      const entries = await fs.readdir(outputDir).catch(() => [] as string[]);
+      refreshed = false;
+      for (const entry of entries.filter((name) => name.endsWith(".ts"))) {
+        const stat = await fs.stat(path.join(outputDir, entry)).catch(() => null);
+        if (stat && stat.mtimeMs > (beforeDirMtimes.get(entry) ?? 0)) {
+          refreshed = true;
+          break;
+        }
+      }
+    }
     if (!refreshed) {
       throw new CliError(
-        `Code generation failed: ${DEFAULT_OUTPUT_DIR}/${
-          options.name ?? DEFAULT_GENERATED_NAME
-        }.ts was not produced or updated. See the generator output above.`,
+        `Code generation failed: no file in ${DEFAULT_OUTPUT_DIR} was produced or updated. See the generator output above.`,
       );
     }
   }
