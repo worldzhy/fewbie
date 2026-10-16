@@ -130,7 +130,7 @@ fewbie registry 当前仅 8 个 item（api-client、auth、data-table、login-fo
 ### 通用验证基线（每个 M 都要过）
 
 1. fewbie 仓自身 `tsc` 0 错 + 既有 CLI 测试通过（`packages/fewbie-cli/test`）；
-2. 用 templates/basic 生成**临时项目**（`FEWBIE_TEMPLATE_PATH` 离线模式），`fewbie add <item>` → `npm install` → `npm run build` 全绿；
+2. 用 [`worldzhy/fewbie-starter`](https://github.com/worldzhy/fewbie-starter) 模板（ADR-004 后的事实源；本地路径经 `FEWBIE_TEMPLATE_PATH` 传入）生成**临时项目**，`fewbie add <item>` → `npm install` → `npm run build` 全绿；
 3. 所有 node 命令在运行中的 node 容器内执行，宿主机不装工具；
 4. 每个 item 独立 commit；不修改与本 item 无关的模板文件。
 

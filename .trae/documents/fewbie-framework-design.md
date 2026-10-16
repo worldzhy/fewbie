@@ -168,8 +168,9 @@ fewbie monorepo（~/src/fewbie，npm workspaces）
 │   └── registry/               组件/util 单一真源（shadcn registry 兼容）
 │       ├── UI:    login-form / page-header / data-table / settings-required-state / ...
 │       └── 逻辑:  api-client / auth / theme / web-monitor-sdk（opt-in）
-└── templates/basic             完整前端骨架（已 shadcn init 的 Next.js 项目，非空白）
-                                └── 含 instrumentation.ts 心跳接线；通过 fewbie update 同步
+
+注：完整前端骨架（已 shadcn init 的 Next.js 项目，非空白）自 2026-10-17 起迁出本 monorepo，
+事实源在独立仓 worldzhy/fewbie-starter（见 ADR-004）；`fewbie init` 克隆该仓根目录。
 
 registry 双端消费：fewbie add（自研路径）／ npx shadcn add <registry-url>（官方路径，v0/Cursor 原生可读）
 标准 ui 基件（button/dialog/…）不进 fewbie registry，随模板的官方 shadcn 产物存在
@@ -187,7 +188,7 @@ web-monitor SDK（自动 PV/错误上报）采用混合分发（2026-09-24 决�
 ## 七、待定项与影响
 
 1. **nightwatch-frontend MUI → shadcn/ui 迁移路径**——现有大量 MUI 页面与共享组件（`src/components/`），迁移工作量大，需单独制定渐进式迁移方案（建议结合 UI 层次重构的路由迁移同步推进，新路由直接用 shadcn，旧路由逐步替换）。
-2. **fewbie 仓库结构（2026-09-25 定稿）**——fewbie monorepo（npm workspaces，与 newbie 仓同构）：根 `package.json`（private，workspaces `packages/*` + `templates/*`）+ `packages/fewbie-cli`（`@devbie/fewbie-cli`，bin `fewbie`，TS + commander；`registry/` 随包 `files` 分发，单一真源）+ `templates/basic`（已 shadcn init 的完整 Next.js 骨架）。模板 tag 用独立命名空间并与 CLI 版本线对齐；`init` 复用 newbie create 的模板解析链（`--template-path → monorepo → git clone --branch <tag>`）。实施里程碑：M0 monorepo 骨架（tsc 通过）→ M1 templates/basic + `init` 冒烟（容器内 next build）→ M2 registry + 4 个 add → M3 `gen api` → M4 发 `0.1.0-stage.0` + 打模板 tag。
+2. **fewbie 仓库结构（2026-09-25 定稿，2026-10-17 修订）**——fewbie monorepo（npm workspaces，与 newbie 仓同构）：根 `package.json`（private，workspaces `packages/*`）+ `packages/fewbie-cli`（`@devbie/fewbie-cli`，bin `fewbie`，TS + commander；`registry/` 随包 `files` 分发，单一真源）。模板骨架自 2026-10-17 起迁出本 monorepo，事实源在独立仓 [`worldzhy/fewbie-starter`](https://github.com/worldzhy/fewbie-starter)（见 ADR-004）；模板 tag 打在 starter 仓，`init` 的模板解析链为「`--template-path` → `git clone fewbie-starter --branch <tag>`」。历史里程碑：M0 monorepo 骨架（tsc 通过）→ M1 templates/basic + `init` 冒烟（容器内 next build）→ M2 registry + 4 个 add → M3 `gen api` → M4 发 `0.1.0-stage.0` + 打模板 tag。
 3. **实施时机与 v1 范围（2026-09-25 定稿）**——fewbie 不阻塞后端 @devbie/newbie 抽取；v1 首批能力 = `init` + `add`（api-client / auth / theme / login-form 共 4 件）+ `gen api`；`doctor` / `update` / 其余 add（data-table、page-header、settings-required-state、web-monitor-sdk wrapper）不进 v1。以新项目作为首个真实落地验证。
 4. ~~`newbie-core-packaging-plan.md` Phase 5 需按本决议重写~~——已完成（2026-09-24）：后端文档已重命名为 `newbie-framework-split-plan.md`，第六章与 Phase 5/6 均已按本决议同步。
 5. **nightwatch-frontend 资产沉淀候选登记（2026-10-08）**——A 档四件已全部沉淀：`app-shell`、`query-client`、`password-checklist`、`sse-stream`（详见 `.trae/documents/nightwatch-frontend-asset-sedimentation-plan.md`）。候选登记：
