@@ -1,13 +1,12 @@
 {
   "name": "fewbie-monorepo",
   "version": "0.0.0",
-  "description": "fewbie frontend framework monorepo (@devbie/fewbie-cli, project templates)",
+  "description": "fewbie frontend framework monorepo (@devbie/fewbie-cli)",
   "author": "worldzhy",
   "private": true,
   "license": "MIT",
   "workspaces": [
-    "packages/*",
-    "templates/*"
+    "packages/*"
   ],
   "allowScripts": {
     "esbuild@0.28.2": true,
