@@ -39,17 +39,16 @@ updates:
           - "next"
           - "eslint-config-next"
           - "@next/*"
-    # typescript-eslint (via eslint-config-next) does not support TypeScript 7
-    # yet (https://github.com/typescript-eslint/typescript-eslint/issues/10940).
-    # Revisit once upstream ships TS 7 support.
+    # Policy: no major upgrades by default. Majors are milestone-driven
+    # (CVE / feature need / ecosystem EOL) and executed as verified
+    # milestones on dev, never via automated PRs — CI cannot observe
+    # behavior-level regressions (changed defaults, family lockstep,
+    # cross-repo consumer impact), so a green check is not evidence.
+    # Dependabot groups only aggregate patch/minor anyway, so majors
+    # arrive as single-package PRs that break lockstep and occupy the
+    # open-PR limit, crowding out minor/patch updates.
     ignore:
-      - dependency-name: "typescript"
-        update-types:
-          - "version-update:semver-major"
-      # eslint-plugin-react (via eslint-config-next) peers cap at eslint ^9.7,
-      # so eslint 10 fails peer resolution. Revisit when eslint-plugin-react
-      # declares eslint 10 support.
-      - dependency-name: "eslint"
+      - dependency-name: "*"
         update-types:
           - "version-update:semver-major"
 
