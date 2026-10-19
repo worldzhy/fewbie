@@ -6,6 +6,7 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -21,9 +22,40 @@ updates:
       patch-updates:
         update-types:
           - "patch"
+      # react and react-dom must always move in lockstep (react-dom pins a
+      # peer on the exact react version). Without this group, dependabot
+      # opens one PR per package and the second one fails npm ci on the
+      # peer mismatch until the first is merged.
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      # next and eslint-config-next ship together; mismatched versions cause
+      # lint/build skew.
+      next:
+        patterns:
+          - "next"
+          - "eslint-config-next"
+          - "@next/*"
+    # typescript-eslint (via eslint-config-next) does not support TypeScript 7
+    # yet (https://github.com/typescript-eslint/typescript-eslint/issues/10940).
+    # Revisit once upstream ships TS 7 support.
+    ignore:
+      - dependency-name: "typescript"
+        update-types:
+          - "version-update:semver-major"
+      # eslint-plugin-react (via eslint-config-next) peers cap at eslint ^9.7,
+      # so eslint 10 fails peer resolution. Revisit when eslint-plugin-react
+      # declares eslint 10 support.
+      - dependency-name: "eslint"
+        update-types:
+          - "version-update:semver-major"
 
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "dev"
     schedule:
       interval: "monthly"
     labels:
