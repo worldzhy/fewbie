@@ -8,7 +8,7 @@
 
 ## 1. 背景与目标
 
-nightwatch-frontend（下称 nw）是 fewbie 体系的第一个复杂宿主，但它早于 fewbie 存在、手工建成，**不是 fewbie 项目**（仓内无 fewbie 标记，`fewbie init` 对非空目录直接拒绝）。2026-09 至 10 月，nw 完成了 Next.js App Router 迁移、MUI→shadcn 单栈收敛、设计系统基线对齐（圆角/排版/间距/侧栏 240↔64 折叠），积累了一批**超出 basic 模板现状、且对所有 dashboard 型业务项目通用**的资产。
+nightwatch-frontend（下称 nw）是 fewbie 体系的第一个复杂宿主，但它早于 fewbie 存在、手工建成，**不是 fewbie 项目**（仓内无 fewbie 标记，`fewbie create` 对非空目录直接拒绝）。2026-09 至 10 月，nw 完成了 Next.js App Router 迁移、MUI→shadcn 单栈收敛、设计系统基线对齐（圆角/排版/间距/侧栏 240↔64 折叠），积累了一批**超出 basic 模板现状、且对所有 dashboard 型业务项目通用**的资产。
 
 fewbie registry 当前仅 8 个 item（api-client、auth、data-table、login-form、page-header、settings-required-state、theme、web-monitor-sdk），模板只有 19 个文件的最小启动器：无应用壳层、无服务端状态范式、无流式传输 util。
 
@@ -94,7 +94,7 @@ fewbie registry 当前仅 8 个 item（api-client、auth、data-table、login-fo
 ## 5. Non-Goals
 
 1. 不让 nw 在本里程碑反向 `fewbie add` 这些 item（nw React 18、文件已存在必然冲突；壳层切换是独立大改动）；
-2. 不重建 nw 前端（`fewbie init` 不支持非空目录，重建 = 搬 200 文件/51k LOC/54 路由 + React 19 升级，周级成本且换不来持续同步——模板级文件无 update 通道）；
+2. 不重建 nw 前端（`fewbie create` 不支持非空目录，重建 = 搬 200 文件/51k LOC/54 路由 + React 19 升级，周级成本且换不来持续同步——模板级文件无 update 通道）；
 3. 不做后端模块↔前端 item 的版本联动机制（D2）；
 4. 不收敛 nw 的 sonner/next-themes/React 19 债（D3）；
 5. 不改 basic 模板既有文件（A2 Provider 默认内置与否按 4-A2 子项建议：不动）；

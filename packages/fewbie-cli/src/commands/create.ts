@@ -7,9 +7,9 @@ import { CliError } from "../lib/errors";
 import { execCapture } from "../lib/exec";
 
 /** Repository that ships the starter template at its root. */
-const TEMPLATE_REPOSITORY_URL = "https://github.com/worldzhy/fewbie-starter.git";
+export const TEMPLATE_REPOSITORY_URL = "https://github.com/worldzhy/fewbie-starter.git";
 /** Explicit local template root; useful for offline/development runs. */
-const TEMPLATE_PATH_ENV = "FEWBIE_TEMPLATE_PATH";
+export const TEMPLATE_PATH_ENV = "FEWBIE_TEMPLATE_PATH";
 
 /** Node/npm package-name rule (lowercase, scoped names allowed). */
 const PACKAGE_NAME_RE = /^(?:@[a-z0-9][a-z0-9-._]*\/)?[a-z0-9][a-z0-9-._]*$/;
@@ -17,7 +17,7 @@ const PACKAGE_NAME_RE = /^(?:@[a-z0-9][a-z0-9-._]*\/)?[a-z0-9][a-z0-9-._]*$/;
 /** Directories/files never copied out of the template. */
 const COPY_IGNORE = new Set(["node_modules", ".next", "dist", ".git", ".env"]);
 
-export interface InitOptions {
+export interface CreateOptions {
   name: string;
   templatePath?: string;
   templateRef?: string;
@@ -34,7 +34,7 @@ export interface ResolvedTemplate {
 
 /** Resolve the basic template: explicit path -> git clone of fewbie-starter. */
 export async function resolveTemplate(
-  options: Pick<InitOptions, "templatePath" | "templateRef">,
+  options: Pick<CreateOptions, "templatePath" | "templateRef">,
 ): Promise<ResolvedTemplate> {
   const explicit = options.templatePath ?? process.env[TEMPLATE_PATH_ENV];
   if (explicit) {
@@ -63,7 +63,7 @@ async function copyTemplate(from: string, to: string): Promise<void> {
   });
 }
 
-export async function runInit(options: InitOptions): Promise<void> {
+export async function runCreate(options: CreateOptions): Promise<void> {
   const { name } = options;
   if (!PACKAGE_NAME_RE.test(name) || name.length > 214) {
     throw new CliError(

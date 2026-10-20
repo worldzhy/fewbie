@@ -1,10 +1,14 @@
 name: CI
 
 on:
+  # The template-sync gate compares registry items against fewbie-starter's
+  # default branch — the same source `fewbie create` clones. That invariant is
+  # only meaningful once work has landed on main, so CI runs there; dev-time
+  # drift is covered by the release checklist instead.
   push:
-    branches: [dev, main]
+    branches: [main]
   pull_request:
-    branches: [dev, main]
+    branches: [main]
 
 jobs:
   build-and-test:
@@ -19,3 +23,6 @@ jobs:
       - run: npm run format:check
       - run: npm run build -w @devbie/fewbie-cli
       - run: npm test -w @devbie/fewbie-cli
+      # Registry items that also ship in fewbie-starter must stay identical to
+      # the template copies, or `fewbie create` and `fewbie add` fork the same file.
+      - run: npm run check:template-sync -w @devbie/fewbie-cli

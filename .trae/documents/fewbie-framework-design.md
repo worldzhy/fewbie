@@ -93,11 +93,13 @@ fewbie 与 @devbie/newbie **根本分野**，不照抄后端的重 npm 包模式
 
 | 命令                     | 调用对象                                                                                                                                                    | 产物                                  |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| `fewbie init`            | 模板仓库 + design token                                                                                                                                     | Next.js + Tailwind + shadcn 骨架      |
+| `fewbie create`          | 模板仓库 + design token                                                                                                                                     | Next.js + Tailwind + shadcn 骨架      |
 | `fewbie add <component>` | 组件模板库                                                                                                                                                  | `components/fewbie/*.tsx`             |
 | `fewbie apits`           | `apits-gen@^1.0.0`（bin `apits`；2026-10-05 落实决议 #4 切换正式包名，bin/配置 schema 零改动，旧 unscoped 包废弃；作为 devDependency 按需引入，**不重写**） | `src/api/_gen/api.ts`（生成物归项目） |
 | `fewbie doctor`          | 项目扫描                                                                                                                                                    | v0 可读性检测、token 一致性、依赖检查 |
 | `fewbie update`          | git diff                                                                                                                                                    | 组件 / token 升级 diff PR             |
+
+命令原名 `init`，2026-10-20 更名 `create`，与后端 `newbie create` 对齐同一动词（两命令由同一条模板解析链孪生而来；原 `init` 与 shadcn `init`（在既有项目内初始化）语义撞词，而 fewbie `create` 语义是从模板建新项目）。下文保留日期标注的历史决策/里程碑记录中的旧名，不改写。
 
 关键决策：**生成器保持独立 npm 包**，fewbie CLI 仅作 thin wrapper（`fewbie apits`）。理由：
 
@@ -160,7 +162,7 @@ fewbie 与 @devbie/newbie **根本分野**，不照抄后端的重 npm 包模式
 fewbie monorepo（~/src/fewbie，npm workspaces）
 ├── packages/fewbie-cli         @devbie/fewbie-cli（全局 npm 包，仅工具层；bin: fewbie）
 │   ├── src/                    命令实现
-│   │   ├── init                clone fewbie 模板仓库（与 newbie create 同解析链，可 pin tag）
+│   │   ├── create              clone fewbie 模板仓库（与 newbie create 同解析链，可 pin tag）
 │   │   ├── add <name>          从 registry 复制组件/util 源码到项目
 │   │   ├── apits              thin wrapper → apits-gen 生成器（OpenAPI → TS 请求代码）
 │   │   ├── doctor              v0 可读性 / token 一致性 / 依赖检查（v1 不做）
@@ -170,7 +172,7 @@ fewbie monorepo（~/src/fewbie，npm workspaces）
 │       └── 逻辑:  api-client / auth / theme / web-monitor-sdk（opt-in）
 
 注：完整前端骨架（已 shadcn init 的 Next.js 项目，非空白）自 2026-10-17 起迁出本 monorepo，
-事实源在独立仓 worldzhy/fewbie-starter（见 ADR-004）；`fewbie init` 克隆该仓根目录。
+事实源在独立仓 worldzhy/fewbie-starter（见 ADR-004）；`fewbie create` 克隆该仓根目录。
 
 registry 双端消费：fewbie add（自研路径）／ npx shadcn add <registry-url>（官方路径，v0/Cursor 原生可读）
 标准 ui 基件（button/dialog/…）不进 fewbie registry，随模板的官方 shadcn 产物存在
@@ -188,7 +190,7 @@ web-monitor SDK（自动 PV/错误上报）采用混合分发（2026-09-24 决�
 ## 七、待定项与影响
 
 1. **nightwatch-frontend MUI → shadcn/ui 迁移路径**——现有大量 MUI 页面与共享组件（`src/components/`），迁移工作量大，需单独制定渐进式迁移方案（建议结合 UI 层次重构的路由迁移同步推进，新路由直接用 shadcn，旧路由逐步替换）。
-2. **fewbie 仓库结构（2026-09-25 定稿，2026-10-17 修订）**——fewbie monorepo（npm workspaces，与 newbie 仓同构）：根 `package.json`（private，workspaces `packages/*`）+ `packages/fewbie-cli`（`@devbie/fewbie-cli`，bin `fewbie`，TS + commander；`registry/` 随包 `files` 分发，单一真源）。模板骨架自 2026-10-17 起迁出本 monorepo，事实源在独立仓 [`worldzhy/fewbie-starter`](https://github.com/worldzhy/fewbie-starter)（见 ADR-004）；模板 tag 打在 starter 仓，`init` 的模板解析链为「`--template-path` → `git clone fewbie-starter --branch <tag>`」。历史里程碑：M0 monorepo 骨架（tsc 通过）→ M1 templates/basic + `init` 冒烟（容器内 next build）→ M2 registry + 4 个 add → M3 `gen api` → M4 发 `0.1.0-stage.0` + 打模板 tag。
+2. **fewbie 仓库结构（2026-09-25 定稿，2026-10-17 修订）**——fewbie monorepo（npm workspaces，与 newbie 仓同构）：根 `package.json`（private，workspaces `packages/*`）+ `packages/fewbie-cli`（`@devbie/fewbie-cli`，bin `fewbie`，TS + commander；`registry/` 随包 `files` 分发，单一真源）。模板骨架自 2026-10-17 起迁出本 monorepo，事实源在独立仓 [`worldzhy/fewbie-starter`](https://github.com/worldzhy/fewbie-starter)（见 ADR-004）；模板 tag 打在 starter 仓，`create` 的模板解析链为「`--template-path` → `git clone fewbie-starter --branch <tag>`」。历史里程碑：M0 monorepo 骨架（tsc 通过）→ M1 templates/basic + `init` 冒烟（容器内 next build）→ M2 registry + 4 个 add → M3 `gen api` → M4 发 `0.1.0-stage.0` + 打模板 tag。
 3. **实施时机与 v1 范围（2026-09-25 定稿）**——fewbie 不阻塞后端 @devbie/newbie 抽取；v1 首批能力 = `init` + `add`（api-client / auth / theme / login-form 共 4 件）+ `gen api`；`doctor` / `update` / 其余 add（data-table、page-header、settings-required-state、web-monitor-sdk wrapper）不进 v1。以新项目作为首个真实落地验证。
 4. ~~`newbie-core-packaging-plan.md` Phase 5 需按本决议重写~~——已完成（2026-09-24）：后端文档已重命名为 `newbie-framework-split-plan.md`，第六章与 Phase 5/6 均已按本决议同步。
 5. **nightwatch-frontend 资产沉淀候选登记（2026-10-08）**——A 档四件已全部沉淀：`app-shell`、`query-client`、`password-checklist`、`sse-stream`（详见 `.trae/documents/nightwatch-frontend-asset-sedimentation-plan.md`）。候选登记：
@@ -196,7 +198,7 @@ web-monitor SDK（自动 PV/错误上报）采用混合分发（2026-09-24 决�
    - **A 档小项（已沉淀，2026-10-08）**：password-checklist（registry:item，描述标注规则真源在 newbie account password.validator、后端策略变更需手工同步）、sse-stream（只含 POST+SSE 传输内核，事件解析留给调用方）。
    - **禁止反向污染**：沉淀评审时凡依赖 nw 技术债栈（react-toastify、手写 theme store、React 18）的代码一律不得直接复制，先改写再迁。
 
-6. **init 装配选择 + 框架接线机制（2026-10-08 登记，搁置待重启）**——需求方向已确认（用户原话）："建新项目时可以由使用者选择装配哪些，然后由框架实现接线"。现状缺口（已取证）：`fewbie init` 不与 registry 交互；`add` 只复制文件 + 打印 postInstall 手工提示（`theme`、`query-client` 均需手工改 root layout），即沉淀计划收录规则第 3 条"无代码改写能力"（Non-Goal #6）。本轮已出决策表，三个分叉点全部搁置；机制未拍板前该收录规则维持有效。重启时从拍板开始、无需重新取证：
+6. **init 装配选择 + 框架接线机制（2026-10-08 登记，搁置待重启）**——需求方向已确认（用户原话）："建新项目时可以由使用者选择装配哪些，然后由框架实现接线"。现状缺口（已取证）：`fewbie create` 不与 registry 交互；`add` 只复制文件 + 打印 postInstall 手工提示（`theme`、`query-client` 均需手工改 root layout），即沉淀计划收录规则第 3 条"无代码改写能力"（Non-Goal #6）。本轮已出决策表，三个分叉点全部搁置；机制未拍板前该收录规则维持有效。重启时从拍板开始、无需重新取证：
    - **D1 接线机制**：A 声明式 wiring 清单——item.json 加 `wiring` 字段，CLI 内置 `insert-import` / `wrap-children` 通用变换器，编辑落点带 sentinel marker（幂等、可追溯），shadcn 端退化为装文件不接线（built item 已有 `postInstall` fewbie 专有字段先例，见 `src/registry/types.ts` 注释）/ B per-item codemod 脚本——registry 变任意代码执行，审计面失控 / C 仅 init 时接线——add 与 init 行为分裂。当时推荐 A。
    - **D2 init 选择交互**：A flags + TTY 交互兜底（create-next-app 先例；`--add app-shell,query-client` 脚本化，无参数 TTY 勾选；新增 `@clack/prompts` 运行时依赖）/ B 仅 flags / C 仅交互。当时推荐 A。
    - **D3 接线状态校验**：是否纳入 doctor（校验 marker 完整性）。接线改的是宿主文件、不在 `fewbie update` 覆盖范围，doctor 是唯一可验证闭环。当时推荐纳入。
