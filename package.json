@@ -5,6 +5,7 @@
   "author": "worldzhy",
   "private": true,
   "license": "MIT",
+  "prettier": "@devbie/style-guide/prettier",
   "workspaces": [
     "packages/*"
   ],
@@ -13,10 +14,14 @@
     "unrs-resolver@1.12.2": true
   },
   "devDependencies": {
+    "@devbie/style-guide": "^1.0.0",
+    "eslint": "^9.39.4",
     "prettier": "^3.9.9"
   },
   "scripts": {
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
   }
 }

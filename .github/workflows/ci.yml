@@ -21,6 +21,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run format:check
+      - run: npm run lint
       - run: npm run build -w @devbie/fewbie-cli
       - run: npm test -w @devbie/fewbie-cli
       # Registry items that also ship in fewbie-starter must stay identical to
