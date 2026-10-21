@@ -1,7 +1,7 @@
-import nest from "@devbie/style-guide/eslint/nest";
+import frontend from "@devbie/style-guide/eslint/frontend";
 
 export default [
-  ...nest,
+  ...frontend,
   {
     ignores: ["**/dist/**", "**/coverage/**"],
   },
